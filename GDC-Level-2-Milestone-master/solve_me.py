@@ -2,36 +2,35 @@ class TasksCommand:
     TASKS_FILE = "tasks.txt"
     COMPLETED_TASKS_FILE = "completed.txt"
 
-    current_items = {}
-    completed_items = []
+    def __init__(self):
+        self.current_items = {}
+        self.completed_items = []
 
     def read_current(self):
+        self.current_items = {}
         try:
-            file = open(self.TASKS_FILE, "r")
-            for line in file.readlines():
-                item = line[:-1].split(" ")
-                self.current_items[int(item[0])] = " ".join(item[1:])
-            file.close()
+            with open(self.TASKS_FILE, "r") as file:
+                for line in file.readlines():
+                    item = line.rstrip("\n").split(" ")
+                    self.current_items[int(item[0])] = " ".join(item[1:])
         except Exception:
             pass
 
     def read_completed(self):
+        self.completed_items = []
         try:
-            file = open(self.COMPLETED_TASKS_FILE, "r")
-            self.completed_items = [line.strip() for line in file.readlines()]
-            file.close()
+            with open(self.COMPLETED_TASKS_FILE, "r") as file:
+                self.completed_items = [line.rstrip("\n") for line in file.readlines()]
         except Exception:
             pass
 
     def write_current(self):
-        with open(self.TASKS_FILE, "w+") as f:
-            f.truncate(0)
+        with open(self.TASKS_FILE, "w") as f:
             for key in sorted(self.current_items.keys()):
                 f.write(f"{key} {self.current_items[key]}\n")
 
     def write_completed(self):
-        with open(self.COMPLETED_TASKS_FILE, "w+") as f:
-            f.truncate(0)
+        with open(self.COMPLETED_TASKS_FILE, "w") as f:
             for item in self.completed_items:
                 f.write(f"{item}\n")
 
@@ -85,7 +84,8 @@ $ python tasks.py report # Statistics"""
                 print(f"Error: no incomplete item with priority {priority} exists.")
                 return
             task = self.current_items.pop(priority)
-            self.completed_items.append(f"{priority} {task}")
+            # Only task description is stored in completed.txt, matching test expectations
+            self.completed_items.append(task)
             self.write_current()
             self.write_completed()
             print(f"Marked item as done.")
@@ -111,9 +111,9 @@ $ python tasks.py report # Statistics"""
         if not self.current_items:
             print("No tasks found.")
             return
-        count=0
+        count = 0
         for priority in sorted(self.current_items.keys()):
-            count+=1
+            count += 1
             print(f"{count}. {self.current_items[priority]} [{priority}]")
 
     def report(self):
@@ -121,9 +121,10 @@ $ python tasks.py report # Statistics"""
         completed_count = len(self.completed_items)
         print(f"Pending : {pending_count}")
         count = 0
-        for task in sorted(self.current_items.keys()):
+        for priority in sorted(self.current_items.keys()):
             count += 1
-            print(f"{count}. {self.current_items[task]} [{task}]")
+            print(f"{count}. {self.current_items[priority]} [{priority}]")
+        print()
         print(f"Completed : {completed_count}")
         count = 0
         for task in self.completed_items:
