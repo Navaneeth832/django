@@ -18,7 +18,7 @@ class TasksCommand:
     def read_completed(self):
         try:
             file = open(self.COMPLETED_TASKS_FILE, "r")
-            self.completed_items = file.readlines()
+            self.completed_items = [line.strip() for line in file.readlines()]
             file.close()
         except Exception:
             pass
@@ -69,15 +69,11 @@ $ python tasks.py report # Statistics"""
         try:
             priority = int(args[0])
             text = " ".join(args[1:])
-            if priority in self.current_items:
-                print(f"Error: Task with priority {priority} already exists")
-                return
             self.current_items[priority] = text
             self.write_current()
             print(f"Added task: \"{text}\" with priority {priority}")
         except ValueError:
             print("Error: Invalid priority number. Please provide a valid integer for priority.")
-        pass
 
     def done(self, args):
         if not args or len(args) != 1:
@@ -103,11 +99,11 @@ $ python tasks.py report # Statistics"""
         try:
             priority = int(args[0])
             if priority not in self.current_items:
-                print(f"Error: No task found with priority {priority}")
+                print(f"Error: item with priority {priority} does not exist. Nothing deleted.")
                 return
             del self.current_items[priority]
             self.write_current()
-            print(f"Deleted task with priority {priority}")
+            print(f"Deleted item with priority {priority}")
         except ValueError:
             print("Error: Invalid priority number. Please provide a valid integer for priority.")
 
@@ -115,10 +111,21 @@ $ python tasks.py report # Statistics"""
         if not self.current_items:
             print("No tasks found.")
             return
+        count=0
         for priority in sorted(self.current_items.keys()):
-            print(f"{priority} {self.current_items[priority]}")
+            count+=1
+            print(f"{count}. {self.current_items[priority]} [{priority}]")
 
     def report(self):
-        total_tasks = len(self.current_items) + len(self.completed_items)
+        pending_count = len(self.current_items)
         completed_count = len(self.completed_items)
-        print(f"Total tasks: {total_tasks}, Completed tasks: {completed_count}")
+        print(f"Pending : {pending_count}")
+        count = 0
+        for task in sorted(self.current_items.keys()):
+            count += 1
+            print(f"{count}. {self.current_items[task]} [{task}]")
+        print(f"Completed : {completed_count}")
+        count = 0
+        for task in self.completed_items:
+            count += 1
+            print(f"{count}. {task}")
